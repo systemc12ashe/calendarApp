@@ -17,7 +17,14 @@
 
     <div class="content">
         <div class="col-8">
-            <h1 id="month-name">Month Name</h1>
+          <select name="months" id="month">
+            <option value="">Select a View</option>
+            <option value="month">Month</option>
+            <option value="week">Week</option>
+            <option value="schedule">Schedule</option>
+          </select>
+          <input type="month" id="monthSelector" name="month" min="2022-02" value="2022-02">
+            <button id="send">See Calendar</button>
             <table id="calendar">
                 <thead>
                     <tr>
@@ -36,4 +43,6 @@
     </div>
     
   </body>
+
+  <script src="calendar.js"></script>
 </html>
