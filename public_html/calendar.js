@@ -1,3 +1,4 @@
+let view = document.getElementById("view").value;
 let table = document.getElementById("days");
 let monthInput = document.getElementById("month").value;
 let yearInput = document.getElementById("year").value;
@@ -60,7 +61,7 @@ function createWeeks() {
     }
 }
 
-function createCalendar(){
+function createMonth(){
     createWeeks();
 	let weeks = [week1, week2, week3, week4];
     if (monthHasFiveWeeks) {
@@ -96,6 +97,7 @@ function createCalendar(){
 }
 
 button.addEventListener("click", function() {
-    days = createCalendar();
-    console.log(days);
+    if (view == "month") {
+        createMonth()
+    }
 });
