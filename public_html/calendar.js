@@ -1,5 +1,6 @@
 let view = document.getElementById("view").value;
-let table = document.getElementById("days");
+let head = document.getElementById("header");
+let body = document.getElementById("days");
 let monthInput = document.getElementById("month").value;
 let yearInput = document.getElementById("year").value;
 let button = document.getElementById("send");
@@ -28,11 +29,12 @@ function getDaysInMonth(month, year) {
     return days;
 }
 
-let month = getDaysInMonth(monthInput, yearInput);
-let dayOne = month[0];
+let month;
+
 
 
 function createWeeks() {
+    let dayOne = month[0];
     let dayOfWeek = dayOne.getDay();
     let weekCount = 1;
     for (count = 0; count < month.length; count++) {
@@ -70,6 +72,24 @@ function createMonth(){
     if (monthHasSixWeeks) {
         weeks.push(week6);
     }
+    let tableHead = document.createElement("tr");
+    let sun = document.createElement("th");
+    sun.textContent = "S";
+    let mon = document.createElement("th");
+    mon.textContent = "M";
+    let tue = document.createElement("th");
+    tue.textContent = "T";
+    let wed = document.createElement("th");
+    wed.textContent = "W";
+    let thu = document.createElement("th");
+    thu.textContent = "T";
+    let fri = document.createElement("th");
+    fri.textContent = "F";
+    let sat = document.createElement("th");
+    sat.textContent = "S";
+    tableHead.append(sun, mon, tue, wed, thu, fri, sat);
+    head.append(tableHead);
+
     for (week in weeks) {
         let tableRow = document.createElement("tr");
         console.log(weeks[week]);
@@ -80,8 +100,6 @@ function createMonth(){
                 let cell = document.createElement("td");
                 tableRow.append(cell);
             }
-            
-            
         }
         for (day in x){
             console.log(x[day]);
@@ -90,14 +108,48 @@ function createMonth(){
             tableRow.append(cell);
         }
         
-        table.append(tableRow);
+        body.append(tableRow);
     }
-    
-     
+}
+
+function createWeek() {
+    let today = new Date();
+    let currentMonth = today.getMonth();
+    let currentYear = today.getFullYear();
+    let currentDay = today.getDate();
+
+    month = getDaysInMonth(currentMonth, currentYear);
+    createWeeks();
+    let tableRow = document.createElement("tr");
+    let tableHead = document.createElement("tr")
+    for (i = (currentDay-1); i < ((currentDay-1)+7); i++) {
+        console.log(month[i]);
+        let header = document.createElement("th");
+        let cell = document.createElement("td");
+        cell.textContent = month[i].getDate();
+        if(month[i].getDay() == 0 || month[i].getDay() == 6) {
+            header.textContent = "S";
+        } else if (month[i].getDay() == 1) {
+            header.textContent = "M";
+        } else if (month[i].getDay() == 2 || month[i].getDay() == 4) {
+            header.textContent = "T";
+        } else if (month[i].getDay() == 3) {
+            header.textContent = "W";
+        } else {
+            header.textContent = "F";
+        }
+        tableRow.append(cell);
+        tableHead.append(header);
+    }
+    head.append(tableHead);
+    body.append(tableRow);
 }
 
 button.addEventListener("click", function() {
     if (view == "month") {
-        createMonth()
+        month = getDaysInMonth(monthInput, yearInput);
+        createMonth();
+    } else if (view == "week") {
+        createWeek();
     }
 });
