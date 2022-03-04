@@ -1,8 +1,19 @@
-table, th, td {
-    border: 1px solid;
-}
 table {
-    border-collapse: collapse;
+    margin-top: 2rem;
+	border-collapse: collapse;
+}
+
+th, td {
+	border: 1px solid black;
+}
+
+th {
+    padding: 50px;
+}
+
+td {
+    padding-right: 50px;
+    padding-bottom: 70px;
 }
 
  /* The side navigation menu */
