@@ -1,5 +1,5 @@
 table {
-    margin-top: 2rem;
+  margin-top: 2rem;
 	border-collapse: collapse;
 }
 
@@ -8,12 +8,12 @@ th, td {
 }
 
 th {
-    padding: 50px;
+  padding: 50px;
 }
 
 td {
-    padding-right: 50px;
-    padding-bottom: 70px;
+  padding-right: 50px;
+  padding-bottom: 70px;
 }
 
  /* The side navigation menu */
