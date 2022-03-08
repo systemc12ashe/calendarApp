@@ -1,10 +1,12 @@
 import React from "react";
+import './Style.css';
 
 function Calendar() {
     return (
         <div>
-        <div className="sidebar">
-        </div>
+            <div className="sidebar">
+                
+            </div>
 
         <div className="content">
             <select name="views" id="view">
