@@ -1,27 +1,60 @@
-import React from "react";
+import React, {useRef, useState} from "react";
+import { Alert } from "react-bootstrap"
 import {Link} from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import './Style.css';
 
 function SignUp() {
+
+    const emailRef = useRef();
+    const passwordRef = useRef();
+    const passwordConfirmRef = useRef();
+    const {signup, setupUser, currentUser} = useAuth();
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    async function handleSubmit() {
+        if (passwordRef.current.value !== passwordConfirmRef.current.value) {
+            return setError("Password does not match")
+        }
+        try {
+            setError('');
+            setLoading(true);
+            await signup(emailRef.current.value, passwordRef.current.value);
+            await setupUser(currentUser.uid)
+        } catch (error) {
+            console.log(error)
+        }
+        setLoading(false)
+    }
+
     return (
     <div>
-            <h1>Palendar Sign Up</h1>
-            <label for="uname">Username</label>
-            <input type="text" id="uname" name="uname"></input>
-            <br></br>
-            <br></br>
-            <label for="pass">Password</label>
-            <input type="password" id="pass" name="pass"></input>
-            <br></br>
-            <br></br>
-            <input type="submit" value="Log In"></input>
-            <br></br>
-            <p>
-                Already have an account?
-                <br></br>
-                <Link to="/Login">Click here to log in.</Link>
-            </p>
+        <h1>Palendar Sign Up</h1>
+        {error && <Alert variant="danger">{error}</Alert>}
+        <label>Email</label>
+        <div>
+            <input type="email" ref={emailRef} required></input>
         </div>
+        <br></br>
+        <label>Password</label>
+        <div>
+            <input type="password" ref={passwordRef} required></input>
+        </div>
+        <br></br>
+        <label>Password Confirmation</label>
+        <div>
+            <input type="password" ref={passwordConfirmRef} required></input>
+        </div>
+        <br></br>
+        <input type="submit" value="Sign Up" onClick={handleSubmit} disabled={loading}></input>
+        <br></br>
+        <p>
+            Already have an account?
+            <br></br>
+            <Link to="/Login">Log In</Link>
+        </p>
+    </div>
     );
 }
 

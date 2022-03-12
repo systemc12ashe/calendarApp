@@ -1,28 +1,62 @@
-import React from "react";
-import {Link} from "react-router-dom";
+import React, {useRef, useState} from "react";
+import { Alert } from "react-bootstrap"
+import {Link, useNavigate} from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import './Style.css';
-  
+
 function Login() {
+
+  const emailRef = useRef();
+  const passwordRef = useRef();
+  const {login, logout} = useAuth();
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+
+  async function handleSubmit() {
+    try {
+      setError('');
+      setLoading(true);
+      await login(emailRef.current.value, passwordRef.current.value);
+      navigate("/Calendar")
+    } catch (error) {
+      setError(error.message)
+    }
+    setLoading(false)
+  }
+
+  // async function handleLogout() {
+  //   try {
+  //     await logout();
+  //     navigate("/Login")
+  //   } catch (error) {
+  //     setError(error.message)
+  //   }
+  // }
+
   return (
+  <div>
+    <h1>Palendar Login</h1>
+    {error && <Alert variant="danger">{error}</Alert>}
+    <label>Email</label>
     <div>
-        <h1>Palendar Login</h1>
-        <label htmlFor="username">Username</label>
-        <input type="text" id="user" name="user"></input>
-        <br></br>
-        <br></br>
-        <label htmlFor="password">Password</label>
-        <input type="password" id="pass" name="pass"></input>
-        <br></br>
-        <br></br>
-        <input type="submit" value="Log In"></input>
-        <br></br>
-        <p>
-            Don't have an account?
-            <br></br>
-            <Link to="/SignUp">Click here to create an account.</Link>
-        </p>
+      <input type="email" ref={emailRef} required></input>
     </div>
+    <br></br>
+    <label>Password</label>
+    <div>
+      <input type="password" ref={passwordRef} required></input>
+    </div>
+  
+    <input type="submit" value="Log In" onClick={handleSubmit} disabled={loading}></input>
+    <br></br>
+    <p>
+      Need an account?
+      <br></br>
+      <Link to="/SignUp">Sign Up</Link>
+    </p>
+  </div>
   );
-};
+}
 
 export default Login;
