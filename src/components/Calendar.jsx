@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { API_KEY, CLIENT_ID, SCOPES } from "../config.js";
 import './Style.css';
 
 // let currentView;
@@ -7,46 +8,138 @@ let currentYear;
 let currentMonth;
 let tableRow = [];
 
+// Calendar and event variables
+let calendarID = "primary";
+let eventID = ""; // TODO: Store eventID of events
+let eventTitle = "Test";
+let eventDescription = "This is a test event created using the addEvent() function API call.";
+let startDateTime = "2022-03-12T17:00:00-07:00"; // (am/pm)(hour)
+let endDateTime =  "2022-03-12T18:00:00-07:00"; // (am/pm)(hour)
+let timeZone = "America/Los_Angeles";
+
 export const Calendar = () => {
-  const [currentView, setCurrentView] = useState('Select a View')
-  
-  const changeView = (newView) => {
-    setCurrentView(newView);
-    viewwww = newView;
-    // console.log(viewwww);
-  }
-
-  const [currentMonth, setCurrentMonth] = useState('Select a View')
-  
-  const changeMonth = (newMonth) => {
-    setCurrentMonth(newMonth);
-  }
-  
-  const [currentYear, setCurrentYear] = useState('Select Year')
-  
-  const changeYear = (newYear) => {
-    setCurrentYear(newYear);
-  }
-
+    // Calendar constants
+    const [currentView, setCurrentView] = useState('Select a View')
+    const changeView = (newView) => {
+        setCurrentView(newView);
+        viewwww = newView;
+        // console.log(viewwww);
+    }
+    const [currentMonth, setCurrentMonth] = useState('Select a View')
+    const changeMonth = (newMonth) => { setCurrentMonth(newMonth); }
+    const [currentYear, setCurrentYear] = useState('Select Year')
+    const changeYear = (newYear) => { setCurrentYear(newYear); }
     const [showResults, setShowResults] = React.useState(false)
     const onClick = () => setShowResults(true);
 
-  return (
-      <div>
-      <div>
-          <form>
-                <select 
-                onChange={(event) => changeView(event.target.value)}
-                value={currentView}
-                >
-                    <option value="">Select a View</option>
-                    <option value="month">Month</option>
-                    <option value="week">Week</option>
-                    <option value="schedule">Schedule</option>
-                </select>
+    // Google Calendar API
+    let gapi = window.gapi
+    let events = []
 
+    function authenticate() {
+        return gapi.auth2.getAuthInstance()
+            .signIn({scope: SCOPES})
+            .then(function() {
+                console.log("Sign-in successful");
+                loadClient();
                 
-                {currentView === "month" &&
+            },
+                function(err) { console.error("Error signing in", err); });
+    }
+
+    function loadClient() {
+        gapi.client.setApiKey(API_KEY);
+        return gapi.client.load('calendar', 'v3')
+            .then(function() {
+                console.log("GAPI client loaded for API");
+            },
+                function(err) { console.error("Error loading GAPI client for API", err); });
+    }
+
+    function insertEvent() {
+        return gapi.client.calendar.events.insert({
+            "calendarId": `${calendarID}`,
+            "sendNotifications": false,
+            "resource": {
+                "summary": `${eventTitle}`,
+                "description": `${eventDescription}`,
+                "start": {
+                    "dateTime": `${startDateTime}`,
+                    "timeZone": `${timeZone}`
+                },
+                "end": {
+                    "dateTime": `${endDateTime}`,
+                    "timeZone": `${timeZone}`
+                }
+            }
+        }).then(function(response) {
+            // Handle the results here (response.result has the parsed body).
+            eventID = response.result.id;
+            console.log("Response", response);
+        },
+        function(err) { console.error("Execute error", err); });
+    }
+
+    function listEvents() {
+        return gapi.client.calendar.events.list({
+            'calendarId': `${calendarID}`,
+            'timeMin': (new Date()).toISOString(),
+            'showDeleted': false,
+            'singleEvents': true,
+            'maxResults': 10,
+            'orderBy': 'startTime'
+        }).then(function(response) {
+            // Handle the results here (response.result has the parsed body).
+            console.log("Response", response);
+
+            var eventsArray = response.result.items;
+            if (eventsArray.length > 0) {
+                for (let i = 0; i < eventsArray.length; i++) {
+                    var event = eventsArray[i];
+                    var when = event.start.dateTime;
+                    if (!when) {
+                        when = event.start.date;
+                    }
+                    events.push(event.summary + ' (' + when + ')')
+                }
+            }
+            console.log(events)
+        },
+        function(err) { console.error("Execute error", err); });
+    }
+
+    function deleteEvent() {
+        return gapi.client.calendar.events.delete({
+            "calendarId": `${calendarID}`,
+            "eventId": `${eventID}`,
+            "sendNotifications": false,
+            "sendUpdates" : "none"
+        }).then(function(response) {
+            // Handle the results here (response.result has the parsed body).
+            console.log("Response", response);
+        },
+        function(err) { console.error("Execute error", err); });
+    }
+
+    gapi.load("client:auth2", function() {
+        gapi.auth2.init({client_id: CLIENT_ID});
+    });
+
+    return (
+        <div>
+            <div>
+                <form>
+                    <select 
+                        onChange={(event) => changeView(event.target.value)}
+                        value={currentView}
+                        >
+                        <option value="">Select a View</option>
+                        <option value="month">Month</option>
+                        <option value="week">Week</option>
+                        <option value="schedule">Schedule</option>
+                    </select>
+
+                    {currentView === "month" &&
                         <select onChange={(event) => changeMonth(event.target.value)}
                         value={currentMonth}>
                             <option value="">Select a Month</option>
@@ -63,9 +156,9 @@ export const Calendar = () => {
                             <option value="10">November</option>
                             <option value="11">December</option>
                         </select>
-                }
+                    }
 
-                {currentView === "month" &&
+                    {currentView === "month" &&
                         <select onChange={(event) => changeYear(event.target.value)}
                         value={currentYear}>
                             <option value="">Select Year</option>
@@ -79,19 +172,27 @@ export const Calendar = () => {
                             <option value="2029">2029</option>
                             <option value="2030">2030</option>
                         </select>
-                }
-            </form>
-            <div>
-        <input type="submit" value="Search" onClick={onClick} />
-        { showResults ? <MonthStuff /> : null }
-      </div>
-            
-      </div>
-    </div>
-  )
+                    }
+                </form>
+                <div>
+                    <input type="submit" value="Search" onClick={onClick} />
+                    { showResults ? <MonthStuff /> : null }
+                </div>
+                <div>
+                    <button className='apiButtons' id='authorize' onClick={authenticate}>Authorize</button>
+                    <button className='apiButtons' id='listEvents' onClick={listEvents}>List Events</button>
+                    <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
+                    <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
+                </div>
+                <div>
+                    <pre></pre>
+                </div>
+            </div>
+        </div>
+    )
 }
 
-const MonthStuff = () =>{
+const MonthStuff = () => {
     // let view = currentView;
     let head = [];
     let monthInput = currentMonth;
@@ -121,7 +222,6 @@ const MonthStuff = () =>{
     }
 
     let month;
-
     function createWeeks() {
         let dayOne = month[0];
         let dayOfWeek = dayOne.getDay();
@@ -152,7 +252,7 @@ const MonthStuff = () =>{
         }
     }
 
-    function createMonth(){
+    function createMonth() {
         createWeeks();
         let weeks = [week1, week2, week3, week4];
         if (monthHasFiveWeeks) {
@@ -179,12 +279,11 @@ const MonthStuff = () =>{
 
         let r = 0;
         for (let week in weeks) {
-            
             // console.log(r);
             // console.log(weeks.length);
             let final = [];
             let x = weeks[week];
-            if (week == 0) {
+            if (week === 0) {
                 let firstDay = x[0].getDay();
                 for (let i = 0; i<firstDay; i++) {
                     let cell = (<td></td>);
@@ -200,10 +299,8 @@ const MonthStuff = () =>{
             
             tableRow.push(<tr>{final}</tr>);
             console.log(final);
-            r+=1;
+            r += 1;
         }
-        
-
     }
 
     if (viewwww === "month") {
@@ -249,13 +346,12 @@ const MonthStuff = () =>{
     // const [showResults, setShowResults] = React.useState(false);
     // const onClick = () => setShowResults(true)
     console.log(tableRow);
-    return(
+
+    return (
         <div id="results" className="search-results">
             <table><thead><tr>{head}</tr></thead><tbody>{tableRow}</tbody></table>
         </div>
     )
-    
 }
 
-  
-  export default Calendar;
+export default Calendar;

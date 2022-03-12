@@ -74,8 +74,13 @@ div.content {
   }
 }
 
-.calendarButtons {
+.apiButtons {
   position: relative;
-  padding: 10px;
   text-align: center;
+  display: inline-block;
+}
+
+.apiContainer {
+  white-space: pre-wrap;
+  position: relative;
 }
