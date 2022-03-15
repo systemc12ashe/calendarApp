@@ -12,7 +12,11 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true)
 
     function signup(email, password) {
-      return auth.createUserWithEmailAndPassword(email, password)
+      return auth.createUserWithEmailAndPassword(email, password).then(resp => {
+        firestore.collection('users').doc(email).set({
+          calendarEvents: {}
+        })
+      })
     }
 
     function login(email, password) {
@@ -21,12 +25,6 @@ export function AuthProvider({ children }) {
 
     function logout() {
       return auth.signOut();
-    }
-
-    function setupUser(uid) {
-      return firestore.collection('users').doc(uid).set({
-        calendar: "",
-      });
     }
 
     useEffect(() => {
@@ -44,7 +42,6 @@ export function AuthProvider({ children }) {
         signup,
         login,
         logout,
-        setupUser
     }
 
   return (

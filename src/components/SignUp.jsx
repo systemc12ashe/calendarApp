@@ -1,6 +1,6 @@
 import React, {useRef, useState} from "react";
 import { Alert } from "react-bootstrap"
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import './Style.css';
 
@@ -9,9 +9,10 @@ function SignUp() {
     const emailRef = useRef();
     const passwordRef = useRef();
     const passwordConfirmRef = useRef();
-    const {signup, setupUser, currentUser} = useAuth();
+    const {signup} = useAuth();
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
 
     async function handleSubmit() {
         if (passwordRef.current.value !== passwordConfirmRef.current.value) {
@@ -21,7 +22,7 @@ function SignUp() {
             setError('');
             setLoading(true);
             await signup(emailRef.current.value, passwordRef.current.value);
-            await setupUser(currentUser.uid)
+            navigate("/Calendar")
         } catch (error) {
             console.log(error)
         }
