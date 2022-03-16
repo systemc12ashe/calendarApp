@@ -420,10 +420,6 @@ const MonthStuff = () => {
                 }
             }
             // console.log(JSON.stringify(events[0]))
-            
-            head.push([<th>"Yay"</th>]);
-            tableRow.push(<tr><td>"Hello"</td></tr>);
-            console.log(tableRow);
             createSchedule();
             },
             function(err) { console.error("Execute error", err); });
@@ -564,10 +560,16 @@ const MonthStuff = () => {
 
         for (let i = 0; i < (events.length/2); i++) {
             let eventName = events[i].substring(0, events[i].indexOf('('));;
-            let time = events[i].substring(events[i].indexOf('(') + 1);
-            let cell = (<tr><td>{eventName}</td><td>({time}</td></tr>);
+            let time = events[i].substring(events[i].indexOf('(') + 12);
+            time = time.slice(0, -1);
+            let date = events[i].substring(events[i].indexOf('(') + 1);
+            date = date.slice(0, 10);
+            let cell = (<tr><td>{date}</td><td>{eventName}</td><td>{time}</td></tr>);
             final.push(cell);
         }
+        head.push(<th>Date</th>);
+        head.push(<th>Event Name</th>);
+        head.push(<th>Time</th>);
         tableRow.push(<tr>{final}</tr>);
     }
 
@@ -581,6 +583,7 @@ const MonthStuff = () => {
         createWeek();
     } else if (viewwww == "schedule") {
         listEvents();
+        console.log(head);
     }
 
     return(
