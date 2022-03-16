@@ -13,12 +13,16 @@ let tableRow = [];
 
 // Calendar and event variables
 let calendarID = "primary";
-let eventID = ""; // TODO: Store eventID of events
-let eventTitle = "Test";
-let eventDescription = "This is a test event created using the addEvent() function API call.";
-let startDateTime = "2022-03-12T17:00:00-07:00"; // (am/pm)(hour)
-let endDateTime =  "2022-03-12T18:00:00-07:00"; // (am/pm)(hour)
-let timeZone = "America/Los_Angeles";
+let eventID = "";
+let eventTitle;
+let eventDescription = "";
+let eventDate;
+let eventStartTime;
+let eventEndTime;
+let startDateTime;
+let endDateTime;
+let timeZone = "America/New_York";
+let events = []
 
 export const Calendar = () => {
     const [currentView, setCurrentView] = useState('Select a View')
@@ -45,22 +49,20 @@ export const Calendar = () => {
     const [showCreate, setShowCreate] = React.useState(false)
     const create = () => setShowCreate(true);
 
-    // Google Calendar API
-    let gapi = window.gapi
-    let events = []
+    const [showDelete, setShowDelete] = React.useState(false)
+    const remove = () => setShowDelete(true);
 
-    // Authentication
     const { currentUser } = useAuth();
-
+    let gapi = window.gapi
+    
     function authenticate() {
         return gapi.auth2.getAuthInstance()
             .signIn({scope: SCOPES})
             .then(function() {
                 console.log("Sign-in successful");
                 loadClient();
-                
             },
-                function(err) { console.error("Error signing in", err); });
+            function(err) { console.error("Error signing in", err); });
     }
 
     function loadClient() {
@@ -69,10 +71,15 @@ export const Calendar = () => {
             .then(function() {
                 console.log("GAPI client loaded for API");
             },
-                function(err) { console.error("Error loading GAPI client for API", err); });
+            function(err) { console.error("Error loading GAPI client for API", err); });
     }
 
     function insertEvent() {
+        var startTimeSplit = eventStartTime.toTimeString().split(" ")
+        var endTimeSplit = eventEndTime.toTimeString().split(" ")
+        var start = eventDate + "T" + startTimeSplit[0] + "-07:00"
+        var end = eventDate + "T" + endTimeSplit[0] + "-07:00"
+
         return gapi.client.calendar.events.insert({
             "calendarId": `${calendarID}`,
             "sendNotifications": false,
@@ -80,22 +87,23 @@ export const Calendar = () => {
                 "summary": `${eventTitle}`,
                 "description": `${eventDescription}`,
                 "start": {
-                    "dateTime": `${startDateTime}`,
+                    "dateTime": `${start}`,
                     "timeZone": `${timeZone}`
                 },
                 "end": {
-                    "dateTime": `${endDateTime}`,
+                    "dateTime": `${end}`,
                     "timeZone": `${timeZone}`
                 }
             }
         }).then(function(response) {
             // Handle the results here (response.result has the parsed body).
-            eventID = response.result.id;
             fetch('http://localhost:8080/insertEvent', {
                 method: 'Post',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
-                 userEmail: currentUser.email,
+                    userEmail: currentUser.email,
+                    eventID: response.result.id,
+                    eventTitle: `${eventTitle}`
                 })
             }).then(function (res) {
                 console.log(res.status);
@@ -119,21 +127,35 @@ export const Calendar = () => {
 
             var eventsArray = response.result.items;
             if (eventsArray.length > 0) {
+                events.push("Upcoming Events");
+                
                 for (let i = 0; i < eventsArray.length; i++) {
                     var event = eventsArray[i];
                     var when = event.start.dateTime;
+                    var date = when.split("T")[0];
+                    var time = when.split("-")[0];
+                    var hour = when.split("T")[1].split("-")[0].split(":")[0];
+                    var minute = when.split("T")[1].split("-")[0].split(":")[1];
+                    console.log(hour)
+                    if (hour > 12) {
+                        hour -= 12;
+                    }
+
                     if (!when) {
                         when = event.start.date;
                     }
-                    events.push(event.summary + ' (' + when + ')')
-                }
+                    events.push("Event: " + event.summary + " on " + date + " at " + hour + ":" + minute);
+                } // 15:30:00-04:00
+                //2022-03-16 T 15 : 30:00 - 04:00)
+            } else {
+                events.push("There are Currently No Upcoming Events");
             }
             console.log(events)
         },
         function(err) { console.error("Execute error", err); });
     }
 
-    function deleteEvent() {
+    function deleteEvent() {        
         return gapi.client.calendar.events.delete({
             "calendarId": `${calendarID}`,
             "eventId": `${eventID}`,
@@ -146,7 +168,8 @@ export const Calendar = () => {
                 method: 'Post',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
-                 userEmail: currentUser.email,
+                    userEmail: currentUser.email,
+                    eventTitle: `${eventTitle}`
                 })
             }).then(function (res) {
                 console.log(res.status);
@@ -156,29 +179,34 @@ export const Calendar = () => {
         function(err) { console.error("Execute error", err); });
     }
 
-    function updateEvent() {
-        return gapi.client.calendar.events.update({
-            "calendarId": `${calendarID}`,
-            "eventId": `${eventID}`,
-            "sendNotifications": false,
-            "sendUpdates": "none",
-            "supportsAttachments": false,
-            "resource": {
-            "end": {
-                "dateTime": `${endDateTime}`
-            },
-            "start": {
-                "dateTime": `${startDateTime}`
-            },
-            "description": `${eventDescription}`,
-            "summary": `${eventTitle}`
-            }
-        }).then(function(response) {
-            // Handle the results here (response.result has the parsed body).
-            console.log("Response", response);
-        },
-        function(err) { console.error("Execute error", err); });
-    }
+    // function updateEvent() {
+    //     var startTimeSplit = eventStartTime.toTimeString().split(" ")
+    //     var endTimeSplit = eventEndTime.toTimeString().split(" ")
+    //     var start = eventDate + "T" + startTimeSplit[0] + "-07:00"
+    //     var end = eventDate + "T" + endTimeSplit[0] + "-07:00"
+
+    //     return gapi.client.calendar.events.update({
+    //         "calendarId": `${calendarID}`,
+    //         "eventId": `${eventID}`,
+    //         "sendNotifications": false,
+    //         "sendUpdates": "none",
+    //         "supportsAttachments": false,
+    //         "resource": {
+    //         "end": {
+    //             "dateTime": `${end}`
+    //         },
+    //         "start": {
+    //             "dateTime": `${start}`
+    //         },
+    //         "description": `${eventDescription}`,
+    //         "summary": `${eventTitle}`
+    //         }
+    //     }).then(function(response) {
+    //         // Handle the results here (response.result has the parsed body).
+    //         console.log("Response", response);
+    //     },
+    //     function(err) { console.error("Execute error", err); });
+    // }
 
     gapi.load("client:auth2", function() {
         gapi.auth2.init({client_id: CLIENT_ID});
@@ -238,13 +266,15 @@ export const Calendar = () => {
                     { showResults ? <MonthStuff /> : null }
                     <input type="submit" value="Create" onClick={create} />
                     { showCreate ? <CreateView /> : null }
+                    <input type="submit" value="Delete" onClick={remove} />
+                    { showDelete ? <DeleteView /> : null }
                 </div>
                 <div id="buttons">
                     <button className='apiButtons' id='authorize' onClick={authenticate}>Authorize</button>
                     <button className='apiButtons' id='listEvents' onClick={listEvents}>List Events</button>
                     <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
                     <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
-                    <button className='apiButtons' id='updateEvent' onClick={updateEvent}>Update Event</button>
+                    {/* <button className='apiButtons' id='updateEvent' onClick={updateEvent}>Update Event</button> */}
                 </div>
             </div>
         </div>
@@ -252,32 +282,76 @@ export const Calendar = () => {
 }
 
 const CreateView = () => {
+    const [title, setTitle] = useState('Title')
+    const changeTitle = (newTitle) => {
+        setTitle(newTitle);
+        eventTitle = newTitle;        
+    }
+
+    const [date, setDate] = useState('Date') // 2022-03-17
+    const changeDate = (newDate) => {
+        setDate(newDate);
+        eventDate = newDate;
+    }
+
+    const [startTime, setStartTime] = useState('Start Time') // Thu Jan 01 1970 07:34:00 GMT-0500 (EST)
+    const changeStartTime = (newStartTime) => {
+        setStartTime(newStartTime);
+        eventStartTime = newStartTime;
+    }
+
+    const [endTime, setEndTime] = useState('Start Time') // Thu Jan 01 1970 07:34:00 GMT-0500 (EST)
+    const changeEndTime = (newEndTime) => {
+        setEndTime(newEndTime);
+        eventEndTime = newEndTime;
+    }
+
     return (
         <form action="">
             <h1>Create Event</h1>
             <ul>
                 <li>
-                    <label for="name">Title</label>
-                    <input type="text" id="name" name="event_name"/>
+                    <label htmlFor="name">Title </label>
+                    <input type="text" id="name" name="event_name" onChange={(event) => changeTitle(event.target.value)} value={title} />
                 </li>
                 <li>
-                    <label for="date">Date</label>
-                    <input type="date" id="date" name="event_date"/>
+                    <label htmlFor="date">Date </label>
+                    <input type="date" id="date" name="event_date" onChange={(event) => changeDate(event.target.value)} value={date} />
                 </li>
                 <li>
-                    <label for="start_time">Start Time</label>
-                    <input type="time" id="start_time" name="start_time"/>
+                    <label htmlFor="start_time">Start Time </label>
+                    <input type="time" id="start_time" name="start_time" onChange={(event) => changeStartTime(event.target.valueAsDate)} value={startTime} />
                 </li>
                 <li>
-                    <label for="end_time">End Time</label>
-                    <input type="time" id="end_time" name="end_time"/>
+                    <label htmlFor="end_time">End Time </label>
+                    <input type="time" id="end_time" name="end_time" onChange={(event) => changeEndTime(event.target.valueAsDate)} value={endTime} />
                 </li>
             </ul>
         </form>
     )
 }
 
-const MonthStuff = () =>{
+const DeleteView = () => {
+    const [title, setTitle] = useState('Title')
+    const changeTitle = (newTitle) => {
+        setTitle(newTitle);
+        eventTitle = newTitle;        
+    }
+
+    return (
+        <form action="">
+            <h1>Delete Event</h1>
+            <ul>
+                <li>
+                    <label htmlFor="name">Title </label>
+                    <input type="text" id="name" name="event_name" onChange={(event) => changeTitle(event.target.value)} value={title} />
+                </li>
+            </ul>
+        </form>
+    )
+}
+
+const MonthStuff = () => {
     // let view = currentView;
     let head = [];
     let monthInput = currentMonth;
@@ -381,8 +455,6 @@ const MonthStuff = () =>{
             }
             tableRow.push(<tr>{final}</tr>);
         }
-        
-
     }
 
     function createWeek() {
@@ -398,7 +470,7 @@ const MonthStuff = () =>{
         createWeeks();
         
         for (let i = (currentDay-1); i < ((currentDay-1)+7); i++) {
-            console.log(month[i]);
+            // console.log(month[i]);
             let header;
             let cellContent = month[i].getDate();
             let cell = (<td>{cellContent}</td>);
@@ -420,6 +492,17 @@ const MonthStuff = () =>{
         tableRow.push(<tr>{final}</tr>);
     }
 
+    function createSchedule() {
+        let final = [];
+        tableRow = [];
+
+        for (let i = 0; i < events.length; i++) {
+            let cell = (<div>{events[i]}</div>);
+            final.push(cell);
+        }
+        tableRow.push(<tr>{final}</tr>);
+    }
+
     // const [showResults, setShowResults] = React.useState(false);
     // const onClick = () => setShowResults(true)
 
@@ -428,6 +511,8 @@ const MonthStuff = () =>{
         createMonth();
     } else if (viewwww == "week") {
         createWeek();
+    } else if (viewwww == "schedule") {
+        createSchedule();
     }
 
     return(
