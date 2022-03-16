@@ -25,15 +25,6 @@ function Login() {
     setLoading(false)
   }
 
-  // async function handleLogout() {
-  //   try {
-  //     await logout();
-  //     navigate("/Login")
-  //   } catch (error) {
-  //     setError(error.message)
-  //   }
-  // }
-
   return (
   <div>
     <h1>Palendar Login</h1>
