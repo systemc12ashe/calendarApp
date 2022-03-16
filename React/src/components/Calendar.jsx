@@ -22,7 +22,7 @@ let eventEndTime;
 let startDateTime;
 let endDateTime;
 let timeZone = "America/New_York";
-let events = []
+let events = [];
 
 export const Calendar = () => {
     const [currentView, setCurrentView] = useState('Select a View')
@@ -44,13 +44,13 @@ export const Calendar = () => {
     }
 
     const [showResults, setShowResults] = React.useState(false)
-    const onClick = () => setShowResults(true);
+    const onClick = () => setShowResults(!showResults);
 
     const [showCreate, setShowCreate] = React.useState(false)
-    const create = () => setShowCreate(true);
+    const create = () => setShowCreate(!showCreate);
 
     const [showDelete, setShowDelete] = React.useState(false)
-    const remove = () => setShowDelete(true);
+    const remove = () => setShowDelete(!showDelete);
 
     const { currentUser } = useAuth();
     let gapi = window.gapi
@@ -394,7 +394,8 @@ const MonthStuff = () => {
 
 
     function listEvents() {
-        tableRow = [];
+        var event;
+        var eventsArray;
 
         return gapi.client.calendar.events.list({
             'calendarId': `${calendarID}`,
@@ -405,12 +406,12 @@ const MonthStuff = () => {
             'orderBy': 'startTime'
         }).then(function(response) {
             // Handle the results here (response.result has the parsed body).
-            console.log("Response", response);
+            // console.log("Response", response);
 
-            var eventsArray = response.result.items;
+            eventsArray = response.result.items;
             if (eventsArray.length > 0) {
                 for (let i = 0; i < eventsArray.length; i++) {
-                    var event = eventsArray[i];
+                    event = eventsArray[i];
                     var when = event.start.dateTime;
                     if (!when) {
                         when = event.start.date;
@@ -418,9 +419,15 @@ const MonthStuff = () => {
                     events.push(event.summary + ' (' + when + ')')
                 }
             }
-            console.log(events)
-        },
-        function(err) { console.error("Execute error", err); });
+            // console.log(JSON.stringify(events[0]))
+            
+            head.push([<th>"Yay"</th>]);
+            tableRow.push(<tr><td>"Hello"</td></tr>);
+            console.log(tableRow);
+            createSchedule();
+            },
+            function(err) { console.error("Execute error", err); });
+            
     }
 // 
 
@@ -555,8 +562,10 @@ const MonthStuff = () => {
         let final = [];
         tableRow = [];
 
-        for (let i = 0; i < events.length; i++) {
-            let cell = (<div>{events[i]}</div>);
+        for (let i = 0; i < (events.length/2); i++) {
+            let eventName = events[i].substring(0, events[i].indexOf('('));;
+            let time = events[i].substring(events[i].indexOf('(') + 1);
+            let cell = (<tr><td>{eventName}</td><td>({time}</td></tr>);
             final.push(cell);
         }
         tableRow.push(<tr>{final}</tr>);
