@@ -25,7 +25,7 @@ app.post("/insertEvent", function (req, res) {
   firestore.collection('users').doc(userEmail).get().then(function (response) {
     buffer = response.data().calendarEvents;
     buffer[`${eventTitle}`] = `${eventID}`;
-  }).then( function () {
+  }).then(function () {
     firestore.collection('users').doc(userEmail).set({
       calendarEvents: buffer
     })
@@ -36,12 +36,15 @@ app.post("/insertEvent", function (req, res) {
 
 app.post("/deleteEvent", function (req, res) {
   let userEmail = req.body.userEmail;
+  let eventTitle = req.body.eventTitle;
   let buffer;
+
+  console.log(eventTitle)
   firestore.collection('users').doc(userEmail).get().then(function (response) {
     buffer = response.data().calendarEvents;
-    delete buffer['test'];
+    delete buffer[`${eventTitle}`];
     console.log(buffer);
-  }).then( function () {
+  }).then(function () {
     firestore.collection('users').doc(userEmail).set({
       calendarEvents: buffer
     })

@@ -48,6 +48,9 @@ export const Calendar = () => {
     const [showCreate, setShowCreate] = React.useState(false)
     const create = () => setShowCreate(true);
 
+    const [showDelete, setShowDelete] = React.useState(false)
+    const remove = () => setShowDelete(true);
+
     const { currentUser } = useAuth();
     let gapi = window.gapi
     let events = []
@@ -151,7 +154,8 @@ export const Calendar = () => {
                 method: 'Post',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
-                 userEmail: currentUser.email,
+                    userEmail: currentUser.email,
+                    eventTitle: `${eventTitle}`
                 })
             }).then(function (res) {
                 console.log(res.status);
@@ -248,6 +252,8 @@ export const Calendar = () => {
                     { showResults ? <MonthStuff /> : null }
                     <input type="submit" value="Create" onClick={create} />
                     { showCreate ? <CreateView /> : null }
+                    <input type="submit" value="Delete" onClick={remove} />
+                    { showDelete ? <DeleteView /> : null }
                 </div>
                 <div id="buttons">
                     <button className='apiButtons' id='authorize' onClick={authenticate}>Authorize</button>
@@ -291,19 +297,19 @@ const CreateView = () => {
             <h1>Create Event</h1>
             <ul>
                 <li>
-                    <label htmlFor="name">Title</label>
-                    <input type="text" id="name" name="event_name" placeholder='New Event' onChange={(event) => changeTitle(event.target.value)} value={title} />
+                    <label htmlFor="name">Title </label>
+                    <input type="text" id="name" name="event_name" onChange={(event) => changeTitle(event.target.value)} value={title} />
                 </li>
                 <li>
-                    <label htmlFor="date">Date</label>
-                    <input type="date" id="date" name="event_date" placeholder='2022-3-16' onChange={(event) => changeDate(event.target.value)} value={date} />
+                    <label htmlFor="date">Date </label>
+                    <input type="date" id="date" name="event_date" onChange={(event) => changeDate(event.target.value)} value={date} />
                 </li>
                 <li>
-                    <label htmlFor="start_time">Start Time</label>
+                    <label htmlFor="start_time">Start Time </label>
                     <input type="time" id="start_time" name="start_time" onChange={(event) => changeStartTime(event.target.valueAsDate)} value={startTime} />
                 </li>
                 <li>
-                    <label htmlFor="end_time">End Time</label>
+                    <label htmlFor="end_time">End Time </label>
                     <input type="time" id="end_time" name="end_time" onChange={(event) => changeEndTime(event.target.valueAsDate)} value={endTime} />
                 </li>
             </ul>
@@ -311,7 +317,27 @@ const CreateView = () => {
     )
 }
 
-const MonthStuff = () =>{
+const DeleteView = () => {
+    const [title, setTitle] = useState('Title')
+    const changeTitle = (newTitle) => {
+        setTitle(newTitle);
+        eventTitle = newTitle;        
+    }
+
+    return (
+        <form action="">
+            <h1>Delete Event</h1>
+            <ul>
+                <li>
+                    <label htmlFor="name">Title </label>
+                    <input type="text" id="name" name="event_name" onChange={(event) => changeTitle(event.target.value)} value={title} />
+                </li>
+            </ul>
+        </form>
+    )
+}
+
+const MonthStuff = () => {
     // let view = currentView;
     let head = [];
     let monthInput = currentMonth;
