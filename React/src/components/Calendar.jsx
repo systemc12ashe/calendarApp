@@ -124,49 +124,6 @@ export const Calendar = () => {
         function(err) { console.error("Execute error", err); });
     }
 
-    function listEvents() {
-        return gapi.client.calendar.events.list({
-            'calendarId': `${calendarID}`,
-            'timeMin': (new Date()).toISOString(),
-            'showDeleted': false,
-            'singleEvents': true,
-            'maxResults': 10,
-            'orderBy': 'startTime'
-        }).then(function(response) {
-            // Handle the results here (response.result has the parsed body).
-            console.log("Response", response);
-
-            var eventsArray = response.result.items;
-            events = [];
-            if (eventsArray.length > 0) {
-                
-                events.push("Upcoming Events");
-                
-                for (let i = 0; i < eventsArray.length; i++) {
-                    var event = eventsArray[i];
-                    var when = event.start.dateTime;
-                    var date = when.split("T")[0];
-                    var time = when.split("-")[0];
-                    var hour = when.split("T")[1].split("-")[0].split(":")[0];
-                    var minute = when.split("T")[1].split("-")[0].split(":")[1];
-                    console.log(hour)
-                    if (hour > 12) {
-                        hour -= 12;
-                    }
-
-                    if (!when) {
-                        when = event.start.date;
-                    }
-                    events.push("Event: " + event.summary + " on " + date + " at " + hour + ":" + minute);
-                }
-            } else {
-                events.push("No Upcoming Events");
-            }
-            console.log(events)
-        },
-        function(err) { console.error("Execute error", err); });
-    }
-
     function deleteEvent() {        
         fetch('http://localhost:8080/getEeventID', {
             method: 'Post',
@@ -296,10 +253,8 @@ export const Calendar = () => {
                 </div>
                 <div id="buttons">
                     <button className='apiButtons' id='authorize' onClick={authenticate}>Authorize</button>
-                    <button className='apiButtons' id='listEvents' onClick={listEvents}>List Events</button>
                     <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
                     <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
-                    {/* <button className='apiButtons' id='updateEvent' onClick={updateEvent}>Update Event</button> */}
                 </div>
                 <div>
                     <button onClick={handleLogout}>Sign Out</button>
