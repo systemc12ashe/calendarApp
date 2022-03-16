@@ -23,7 +23,6 @@ app.post("/insertEvent", function (req, res) {
   firestore.collection('users').doc(userEmail).get().then(function (response) {
     buffer = response.data().calendarEvents;
     buffer['test2'] = "working";
-    console.log(buffer);
   }).then( function () {
     firestore.collection('users').doc(userEmail).set({
       calendarEvents: buffer
@@ -39,13 +38,22 @@ app.post("/deleteEvent", function (req, res) {
   firestore.collection('users').doc(userEmail).get().then(function (response) {
     buffer = response.data().calendarEvents;
     delete buffer['test'];
-    console.log(buffer);
   }).then( function () {
     firestore.collection('users').doc(userEmail).set({
       calendarEvents: buffer
     })
   })
   res.status(200).send();
+})
+
+app.post("/getEeventID", function (req, res) {
+  let userEmail = req.body.userEmail;
+  firestore.collection('users').doc(userEmail).get().then(function (response) {
+    let eventID = response.data().calendarEvents["nameOfEvent"];
+    res.status(200).json({"eventID": eventID});
+  }).catch(function (error) {
+    res.status(400).send()
+  })
 })
 
 app.use(express.static("public_html"));
