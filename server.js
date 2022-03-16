@@ -1,8 +1,8 @@
 let express = require("express");
-var cors = require("cors");
+let cors = require("cors");
 let app = express();
-var admin = require("firebase-admin");
-var serviceAccount = require("./serviceAccountKey.json");
+let admin = require("firebase-admin");
+let serviceAccount = require("./serviceAccountKey.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -18,10 +18,13 @@ app.use(express.json());
 
 app.post("/insertEvent", function (req, res) {
   let userEmail = req.body.userEmail;
+  let eventID = req.body.eventID;
+  let eventTitle = req.body.eventTitle;
   let buffer;
+
   firestore.collection('users').doc(userEmail).get().then(function (response) {
     buffer = response.data().calendarEvents;
-    buffer['test2'] = "working";
+    buffer[`${eventTitle}`] = `${eventID}`;
   }).then( function () {
     firestore.collection('users').doc(userEmail).set({
       calendarEvents: buffer
@@ -32,10 +35,12 @@ app.post("/insertEvent", function (req, res) {
 
 app.post("/deleteEvent", function (req, res) {
   let userEmail = req.body.userEmail;
+  let eventTitle = req.body.eventTitle;
   let buffer;
+
   firestore.collection('users').doc(userEmail).get().then(function (response) {
     buffer = response.data().calendarEvents;
-    delete buffer['test'];
+    delete buffer[`${eventTitle}`];
   }).then( function () {
     firestore.collection('users').doc(userEmail).set({
       calendarEvents: buffer
@@ -46,9 +51,13 @@ app.post("/deleteEvent", function (req, res) {
 
 app.post("/getEeventID", function (req, res) {
   let userEmail = req.body.userEmail;
+  let eventTitle = req.body.eventTitle;
+
   firestore.collection('users').doc(userEmail).get().then(function (response) {
-    let eventID = response.data().calendarEvents["nameOfEvent"];
-    res.status(200).json({"eventID": eventID});
+    let eventID = response.data().calendarEvents[`${eventTitle}`];
+    res.status(200).json({
+      "eventID": eventID
+    });
   }).catch(function (error) {
     res.status(400).send()
   })

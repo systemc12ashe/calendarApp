@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import {Link, useNavigate} from "react-router-dom";
 import { API_KEY, CLIENT_ID, SCOPES } from "../config.js";
 import { useAuth } from "../contexts/AuthContext"
 import './Style.css';
@@ -52,7 +53,17 @@ export const Calendar = () => {
     const [showDelete, setShowDelete] = React.useState(false)
     const remove = () => setShowDelete(!showDelete);
 
-    const { currentUser } = useAuth();
+    const { currentUser, logout } = useAuth();
+    const navigate = useNavigate()
+    async function handleLogout() {
+        try {
+            await logout();
+            navigate("/Login")
+        } catch (error) {
+            console.log(error.message)
+        }
+    }
+
     let gapi = window.gapi
     
     function authenticate() {
@@ -113,70 +124,41 @@ export const Calendar = () => {
         function(err) { console.error("Execute error", err); });
     }
 
-    // function listEvents() {
-    //     return gapi.client.calendar.events.list({
-    //         'calendarId': `${calendarID}`,
-    //         'timeMin': (new Date()).toISOString(),
-    //         'showDeleted': false,
-    //         'singleEvents': true,
-    //         'maxResults': 10,
-    //         'orderBy': 'startTime'
-    //     }).then(function(response) {
-    //         // Handle the results here (response.result has the parsed body).
-    //         console.log("Response", response);
-
-    //         var eventsArray = response.result.items;
-    //         if (eventsArray.length > 0) {
-    //             events.push("Upcoming Events");
-                
-    //             for (let i = 0; i < eventsArray.length; i++) {
-    //                 var event = eventsArray[i];
-    //                 var when = event.start.dateTime;
-    //                 var date = when.split("T")[0];
-    //                 var time = when.split("-")[0];
-    //                 var hour = when.split("T")[1].split("-")[0].split(":")[0];
-    //                 var minute = when.split("T")[1].split("-")[0].split(":")[1];
-    //                 console.log(hour)
-    //                 if (hour > 12) {
-    //                     hour -= 12;
-    //                 }
-
-    //                 if (!when) {
-    //                     when = event.start.date;
-    //                 }
-    //                 events.push("Event: " + event.summary + " on " + date + " at " + hour + ":" + minute);
-    //             } // 15:30:00-04:00
-    //             //2022-03-16 T 15 : 30:00 - 04:00)
-    //         } else {
-    //             events.push("There are Currently No Upcoming Events");
-    //         }
-    //         console.log(events)
-    //     },
-    //     function(err) { console.error("Execute error", err); });
-    // }
-
     function deleteEvent() {        
-        return gapi.client.calendar.events.delete({
-            "calendarId": `${calendarID}`,
-            "eventId": `${eventID}`,
-            "sendNotifications": false,
-            "sendUpdates" : "none"
-        }).then(function(response) {
-            // Handle the results here (response.result has the parsed body).
-            eventID = response.result.id;
-            fetch('http://localhost:8080/deleteEvent', {
-                method: 'Post',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({
-                    userEmail: currentUser.email,
-                    eventTitle: `${eventTitle}`
-                })
-            }).then(function (res) {
-                console.log(res.status);
-            });
-            console.log("Response", response);
-        },
-        function(err) { console.error("Execute error", err); });
+        fetch('http://localhost:8080/getEeventID', {
+            method: 'Post',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                userEmail: currentUser.email,
+                eventTitle: `${eventTitle}`
+            })
+        }).then(function (res) {
+            return res.json();
+        }).then(function (res) {
+            eventID = res.eventID;
+        }).then(function () {
+            return gapi.client.calendar.events.delete({
+                "calendarId": `${calendarID}`,
+                "eventId": `${eventID}`,
+                "sendNotifications": false,
+                "sendUpdates" : "none"
+            }).then(function(response) {
+                // Handle the results here (response.result has the parsed body).
+                eventID = response.result.id;
+                fetch('http://localhost:8080/deleteEvent', {
+                    method: 'Post',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({
+                        userEmail: currentUser.email,
+                        eventTitle: `${eventTitle}`
+                    })
+                }).then(function (res) {
+                    console.log(res.status);
+                });
+                console.log("Response", response);
+            },
+            function(err) { console.error("Execute error", err); });
+        })
     }
 
     // function updateEvent() {
@@ -271,10 +253,11 @@ export const Calendar = () => {
                 </div>
                 <div id="buttons">
                     <button className='apiButtons' id='authorize' onClick={authenticate}>Authorize</button>
-                    {/* <button className='apiButtons' id='listEvents' onClick={listEvents}>List Events</button> */}
                     <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
                     <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
-                    {/* <button className='apiButtons' id='updateEvent' onClick={updateEvent}>Update Event</button> */}
+                </div>
+                <div>
+                    <button onClick={handleLogout}>Sign Out</button>
                 </div>
             </div>
         </div>
