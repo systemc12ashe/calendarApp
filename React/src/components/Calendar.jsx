@@ -113,47 +113,47 @@ export const Calendar = () => {
         function(err) { console.error("Execute error", err); });
     }
 
-    function listEvents() {
-        return gapi.client.calendar.events.list({
-            'calendarId': `${calendarID}`,
-            'timeMin': (new Date()).toISOString(),
-            'showDeleted': false,
-            'singleEvents': true,
-            'maxResults': 10,
-            'orderBy': 'startTime'
-        }).then(function(response) {
-            // Handle the results here (response.result has the parsed body).
-            console.log("Response", response);
+    // function listEvents() {
+    //     return gapi.client.calendar.events.list({
+    //         'calendarId': `${calendarID}`,
+    //         'timeMin': (new Date()).toISOString(),
+    //         'showDeleted': false,
+    //         'singleEvents': true,
+    //         'maxResults': 10,
+    //         'orderBy': 'startTime'
+    //     }).then(function(response) {
+    //         // Handle the results here (response.result has the parsed body).
+    //         console.log("Response", response);
 
-            var eventsArray = response.result.items;
-            if (eventsArray.length > 0) {
-                events.push("Upcoming Events");
+    //         var eventsArray = response.result.items;
+    //         if (eventsArray.length > 0) {
+    //             events.push("Upcoming Events");
                 
-                for (let i = 0; i < eventsArray.length; i++) {
-                    var event = eventsArray[i];
-                    var when = event.start.dateTime;
-                    var date = when.split("T")[0];
-                    var time = when.split("-")[0];
-                    var hour = when.split("T")[1].split("-")[0].split(":")[0];
-                    var minute = when.split("T")[1].split("-")[0].split(":")[1];
-                    console.log(hour)
-                    if (hour > 12) {
-                        hour -= 12;
-                    }
+    //             for (let i = 0; i < eventsArray.length; i++) {
+    //                 var event = eventsArray[i];
+    //                 var when = event.start.dateTime;
+    //                 var date = when.split("T")[0];
+    //                 var time = when.split("-")[0];
+    //                 var hour = when.split("T")[1].split("-")[0].split(":")[0];
+    //                 var minute = when.split("T")[1].split("-")[0].split(":")[1];
+    //                 console.log(hour)
+    //                 if (hour > 12) {
+    //                     hour -= 12;
+    //                 }
 
-                    if (!when) {
-                        when = event.start.date;
-                    }
-                    events.push("Event: " + event.summary + " on " + date + " at " + hour + ":" + minute);
-                } // 15:30:00-04:00
-                //2022-03-16 T 15 : 30:00 - 04:00)
-            } else {
-                events.push("There are Currently No Upcoming Events");
-            }
-            console.log(events)
-        },
-        function(err) { console.error("Execute error", err); });
-    }
+    //                 if (!when) {
+    //                     when = event.start.date;
+    //                 }
+    //                 events.push("Event: " + event.summary + " on " + date + " at " + hour + ":" + minute);
+    //             } // 15:30:00-04:00
+    //             //2022-03-16 T 15 : 30:00 - 04:00)
+    //         } else {
+    //             events.push("There are Currently No Upcoming Events");
+    //         }
+    //         console.log(events)
+    //     },
+    //     function(err) { console.error("Execute error", err); });
+    // }
 
     function deleteEvent() {        
         return gapi.client.calendar.events.delete({
@@ -271,7 +271,7 @@ export const Calendar = () => {
                 </div>
                 <div id="buttons">
                     <button className='apiButtons' id='authorize' onClick={authenticate}>Authorize</button>
-                    <button className='apiButtons' id='listEvents' onClick={listEvents}>List Events</button>
+                    {/* <button className='apiButtons' id='listEvents' onClick={listEvents}>List Events</button> */}
                     <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
                     <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
                     {/* <button className='apiButtons' id='updateEvent' onClick={updateEvent}>Update Event</button> */}
@@ -364,6 +364,65 @@ const MonthStuff = () => {
     let week6 = [];
     let monthHasFiveWeeks = false;
     let monthHasSixWeeks = false;
+
+// 
+    const { currentUser } = useAuth();
+    let gapi = window.gapi
+    
+    function authenticate() {
+        return gapi.auth2.getAuthInstance()
+            .signIn({scope: SCOPES})
+            .then(function() {
+                console.log("Sign-in successful");
+                loadClient();
+            },
+            function(err) { console.error("Error signing in", err); });
+    }
+
+    function loadClient() {
+        gapi.client.setApiKey(API_KEY);
+        return gapi.client.load('calendar', 'v3')
+            .then(function() {
+                console.log("GAPI client loaded for API");
+            },
+            function(err) { console.error("Error loading GAPI client for API", err); });
+    }
+
+    gapi.load("client:auth2", function() {
+        gapi.auth2.init({client_id: CLIENT_ID});
+    });
+
+
+    function listEvents() {
+        tableRow = [];
+
+        return gapi.client.calendar.events.list({
+            'calendarId': `${calendarID}`,
+            'timeMin': (new Date()).toISOString(),
+            'showDeleted': false,
+            'singleEvents': true,
+            'maxResults': 10,
+            'orderBy': 'startTime'
+        }).then(function(response) {
+            // Handle the results here (response.result has the parsed body).
+            console.log("Response", response);
+
+            var eventsArray = response.result.items;
+            if (eventsArray.length > 0) {
+                for (let i = 0; i < eventsArray.length; i++) {
+                    var event = eventsArray[i];
+                    var when = event.start.dateTime;
+                    if (!when) {
+                        when = event.start.date;
+                    }
+                    events.push(event.summary + ' (' + when + ')')
+                }
+            }
+            console.log(events)
+        },
+        function(err) { console.error("Execute error", err); });
+    }
+// 
 
     // From https://stackoverflow.com/questions/13146418/find-all-the-days-in-a-month-with-date-object
 
@@ -512,7 +571,7 @@ const MonthStuff = () => {
     } else if (viewwww == "week") {
         createWeek();
     } else if (viewwww == "schedule") {
-        createSchedule();
+        listEvents();
     }
 
     return(
