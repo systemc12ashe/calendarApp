@@ -131,6 +131,30 @@ export const Calendar = () => {
         function(err) { console.error("Execute error", err); });
     }
 
+    function updateEvent() {
+        return gapi.client.calendar.events.update({
+            "calendarId": `${calendarID}`,
+            "eventId": `${eventID}`,
+            "sendNotifications": false,
+            "sendUpdates": "none",
+            "supportsAttachments": false,
+            "resource": {
+            "end": {
+                "dateTime": `${endDateTime}`
+            },
+            "start": {
+                "dateTime": `${startDateTime}`
+            },
+            "description": `${eventDescription}`,
+            "summary": `${eventTitle}`
+            }
+        }).then(function(response) {
+            // Handle the results here (response.result has the parsed body).
+            console.log("Response", response);
+        },
+        function(err) { console.error("Execute error", err); });
+    }
+
     gapi.load("client:auth2", function() {
         gapi.auth2.init({client_id: CLIENT_ID});
     });
@@ -193,6 +217,7 @@ export const Calendar = () => {
                     <button className='apiButtons' id='listEvents' onClick={listEvents}>List Events</button>
                     <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
                     <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
+                    <button className='apiButtons' id='updateEvent' onClick={updateEvent}>Update Event</button>
                 </div>
                 <div>
                     <pre></pre>
