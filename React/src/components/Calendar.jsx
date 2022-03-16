@@ -80,7 +80,7 @@ export const Calendar = () => {
                 method: 'Post',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
-                 "useremail": currentUser.email,
+                 userEmail: currentUser.email,
                 })
             }).then(function (res) {
                 console.log(res.status);

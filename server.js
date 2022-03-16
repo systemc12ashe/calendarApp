@@ -18,10 +18,17 @@ app.use(express.static("public_html"));
 app.use(express.json());
 
 app.post("/insertEvent", function (req, res) {
-  let useremail = req.body.useremail;
-  firestore.collection('users').doc(useremail).get().then(function (response) {
-    console.log(response)
-  });
+  let userEmail = req.body.userEmail;
+  let buffer;
+  firestore.collection('users').doc(userEmail).get().then(function (response) {
+    buffer = response.data().calendarEvents;
+    buffer['test2'] = "working";
+    console.log(buffer);
+  }).then( function () {
+    firestore.collection('users').doc(userEmail).set({
+      calendarEvents: buffer
+    })
+  })
   res.status(200).send();
 
 })
