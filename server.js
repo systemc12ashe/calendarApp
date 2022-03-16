@@ -1,9 +1,8 @@
 let express = require("express");
-var cors = require("cors");
+let cors = require("cors");
 let app = express();
-var admin = require("firebase-admin");
-
-var serviceAccount = require("./serviceAccountKey.json");
+let admin = require("firebase-admin");
+let serviceAccount = require("./serviceAccountKey.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -19,11 +18,13 @@ app.use(express.json());
 
 app.post("/insertEvent", function (req, res) {
   let userEmail = req.body.userEmail;
+  let eventID = req.body.eventID;
+  let eventTitle = req.body.eventTitle;
   let buffer;
+
   firestore.collection('users').doc(userEmail).get().then(function (response) {
     buffer = response.data().calendarEvents;
-    buffer['test2'] = "working";
-    console.log(buffer);
+    buffer[`${eventTitle}`] = `${eventID}`;
   }).then( function () {
     firestore.collection('users').doc(userEmail).set({
       calendarEvents: buffer

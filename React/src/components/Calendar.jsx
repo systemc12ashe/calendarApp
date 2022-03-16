@@ -13,12 +13,15 @@ let tableRow = [];
 
 // Calendar and event variables
 let calendarID = "primary";
-let eventID = ""; // TODO: Store eventID of events
-let eventTitle = "Test";
-let eventDescription = "This is a test event created using the addEvent() function API call.";
-let startDateTime = "2022-03-12T17:00:00-07:00"; // (am/pm)(hour)
-let endDateTime =  "2022-03-12T18:00:00-07:00"; // (am/pm)(hour)
-let timeZone = "America/Los_Angeles";
+let eventID = "";
+let eventTitle;
+let eventDescription = "";
+let eventDate;
+let eventStartTime;
+let eventEndTime;
+let startDateTime;
+let endDateTime;
+let timeZone = "America/New_York";
 
 export const Calendar = () => {
     const [currentView, setCurrentView] = useState('Select a View')
@@ -45,22 +48,18 @@ export const Calendar = () => {
     const [showCreate, setShowCreate] = React.useState(false)
     const create = () => setShowCreate(true);
 
-    // Google Calendar API
+    const { currentUser } = useAuth();
     let gapi = window.gapi
     let events = []
-
-    // Authentication
-    const { currentUser } = useAuth();
-
+    
     function authenticate() {
         return gapi.auth2.getAuthInstance()
             .signIn({scope: SCOPES})
             .then(function() {
                 console.log("Sign-in successful");
                 loadClient();
-                
             },
-                function(err) { console.error("Error signing in", err); });
+            function(err) { console.error("Error signing in", err); });
     }
 
     function loadClient() {
@@ -69,10 +68,15 @@ export const Calendar = () => {
             .then(function() {
                 console.log("GAPI client loaded for API");
             },
-                function(err) { console.error("Error loading GAPI client for API", err); });
+            function(err) { console.error("Error loading GAPI client for API", err); });
     }
 
     function insertEvent() {
+        var startTimeSplit = eventStartTime.toTimeString().split(" ")
+        var endTimeSplit = eventEndTime.toTimeString().split(" ")
+        var start = eventDate + "T" + startTimeSplit[0] + "-07:00"
+        var end = eventDate + "T" + endTimeSplit[0] + "-07:00"
+
         return gapi.client.calendar.events.insert({
             "calendarId": `${calendarID}`,
             "sendNotifications": false,
@@ -80,22 +84,23 @@ export const Calendar = () => {
                 "summary": `${eventTitle}`,
                 "description": `${eventDescription}`,
                 "start": {
-                    "dateTime": `${startDateTime}`,
+                    "dateTime": `${start}`,
                     "timeZone": `${timeZone}`
                 },
                 "end": {
-                    "dateTime": `${endDateTime}`,
+                    "dateTime": `${end}`,
                     "timeZone": `${timeZone}`
                 }
             }
         }).then(function(response) {
             // Handle the results here (response.result has the parsed body).
-            eventID = response.result.id;
             fetch('http://localhost:8080/insertEvent', {
                 method: 'Post',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
-                 userEmail: currentUser.email,
+                    userEmail: currentUser.email,
+                    eventID: `${eventID}`,
+                    eventTitle: `${eventTitle}`
                 })
             }).then(function (res) {
                 console.log(res.status);
@@ -106,34 +111,34 @@ export const Calendar = () => {
     }
 
     function listEvents() {
-        return gapi.client.calendar.events.list({
-            'calendarId': `${calendarID}`,
-            'timeMin': (new Date()).toISOString(),
-            'showDeleted': false,
-            'singleEvents': true,
-            'maxResults': 10,
-            'orderBy': 'startTime'
-        }).then(function(response) {
-            // Handle the results here (response.result has the parsed body).
-            console.log("Response", response);
+        // return gapi.client.calendar.events.list({
+        //     'calendarId': `${calendarID}`,
+        //     'timeMin': (new Date()).toISOString(),
+        //     'showDeleted': false,
+        //     'singleEvents': true,
+        //     'maxResults': 10,
+        //     'orderBy': 'startTime'
+        // }).then(function(response) {
+        //     // Handle the results here (response.result has the parsed body).
+        //     console.log("Response", response);
 
-            var eventsArray = response.result.items;
-            if (eventsArray.length > 0) {
-                for (let i = 0; i < eventsArray.length; i++) {
-                    var event = eventsArray[i];
-                    var when = event.start.dateTime;
-                    if (!when) {
-                        when = event.start.date;
-                    }
-                    events.push(event.summary + ' (' + when + ')')
-                }
-            }
-            console.log(events)
-        },
-        function(err) { console.error("Execute error", err); });
+        //     var eventsArray = response.result.items;
+        //     if (eventsArray.length > 0) {
+        //         for (let i = 0; i < eventsArray.length; i++) {
+        //             var event = eventsArray[i];
+        //             var when = event.start.dateTime;
+        //             if (!when) {
+        //                 when = event.start.date;
+        //             }
+        //             events.push(event.summary + ' (' + when + ')')
+        //         }
+        //     }
+        //     console.log(events)
+        // },
+        // function(err) { console.error("Execute error", err); });
     }
 
-    function deleteEvent() {
+    function deleteEvent() {        
         return gapi.client.calendar.events.delete({
             "calendarId": `${calendarID}`,
             "eventId": `${eventID}`,
@@ -156,29 +161,34 @@ export const Calendar = () => {
         function(err) { console.error("Execute error", err); });
     }
 
-    function updateEvent() {
-        return gapi.client.calendar.events.update({
-            "calendarId": `${calendarID}`,
-            "eventId": `${eventID}`,
-            "sendNotifications": false,
-            "sendUpdates": "none",
-            "supportsAttachments": false,
-            "resource": {
-            "end": {
-                "dateTime": `${endDateTime}`
-            },
-            "start": {
-                "dateTime": `${startDateTime}`
-            },
-            "description": `${eventDescription}`,
-            "summary": `${eventTitle}`
-            }
-        }).then(function(response) {
-            // Handle the results here (response.result has the parsed body).
-            console.log("Response", response);
-        },
-        function(err) { console.error("Execute error", err); });
-    }
+    // function updateEvent() {
+    //     var startTimeSplit = eventStartTime.toTimeString().split(" ")
+    //     var endTimeSplit = eventEndTime.toTimeString().split(" ")
+    //     var start = eventDate + "T" + startTimeSplit[0] + "-07:00"
+    //     var end = eventDate + "T" + endTimeSplit[0] + "-07:00"
+
+    //     return gapi.client.calendar.events.update({
+    //         "calendarId": `${calendarID}`,
+    //         "eventId": `${eventID}`,
+    //         "sendNotifications": false,
+    //         "sendUpdates": "none",
+    //         "supportsAttachments": false,
+    //         "resource": {
+    //         "end": {
+    //             "dateTime": `${end}`
+    //         },
+    //         "start": {
+    //             "dateTime": `${start}`
+    //         },
+    //         "description": `${eventDescription}`,
+    //         "summary": `${eventTitle}`
+    //         }
+    //     }).then(function(response) {
+    //         // Handle the results here (response.result has the parsed body).
+    //         console.log("Response", response);
+    //     },
+    //     function(err) { console.error("Execute error", err); });
+    // }
 
     gapi.load("client:auth2", function() {
         gapi.auth2.init({client_id: CLIENT_ID});
@@ -244,7 +254,7 @@ export const Calendar = () => {
                     <button className='apiButtons' id='listEvents' onClick={listEvents}>List Events</button>
                     <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
                     <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
-                    <button className='apiButtons' id='updateEvent' onClick={updateEvent}>Update Event</button>
+                    {/* <button className='apiButtons' id='updateEvent' onClick={updateEvent}>Update Event</button> */}
                 </div>
             </div>
         </div>
@@ -252,25 +262,49 @@ export const Calendar = () => {
 }
 
 const CreateView = () => {
+    const [title, setTitle] = useState('Title')
+    const changeTitle = (newTitle) => {
+        setTitle(newTitle);
+        eventTitle = newTitle;        
+    }
+
+    const [date, setDate] = useState('Date') // 2022-03-17
+    const changeDate = (newDate) => {
+        setDate(newDate);
+        eventDate = newDate;
+    }
+
+    const [startTime, setStartTime] = useState('Start Time') // Thu Jan 01 1970 07:34:00 GMT-0500 (EST)
+    const changeStartTime = (newStartTime) => {
+        setStartTime(newStartTime);
+        eventStartTime = newStartTime;
+    }
+
+    const [endTime, setEndTime] = useState('Start Time') // Thu Jan 01 1970 07:34:00 GMT-0500 (EST)
+    const changeEndTime = (newEndTime) => {
+        setEndTime(newEndTime);
+        eventEndTime = newEndTime;
+    }
+
     return (
         <form action="">
             <h1>Create Event</h1>
             <ul>
                 <li>
-                    <label for="name">Title</label>
-                    <input type="text" id="name" name="event_name"/>
+                    <label htmlFor="name">Title</label>
+                    <input type="text" id="name" name="event_name" placeholder='New Event' onChange={(event) => changeTitle(event.target.value)} value={title} />
                 </li>
                 <li>
-                    <label for="date">Date</label>
-                    <input type="date" id="date" name="event_date"/>
+                    <label htmlFor="date">Date</label>
+                    <input type="date" id="date" name="event_date" placeholder='2022-3-16' onChange={(event) => changeDate(event.target.value)} value={date} />
                 </li>
                 <li>
-                    <label for="start_time">Start Time</label>
-                    <input type="time" id="start_time" name="start_time"/>
+                    <label htmlFor="start_time">Start Time</label>
+                    <input type="time" id="start_time" name="start_time" onChange={(event) => changeStartTime(event.target.valueAsDate)} value={startTime} />
                 </li>
                 <li>
-                    <label for="end_time">End Time</label>
-                    <input type="time" id="end_time" name="end_time"/>
+                    <label htmlFor="end_time">End Time</label>
+                    <input type="time" id="end_time" name="end_time" onChange={(event) => changeEndTime(event.target.valueAsDate)} value={endTime} />
                 </li>
             </ul>
         </form>
