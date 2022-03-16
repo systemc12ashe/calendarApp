@@ -22,6 +22,7 @@ let eventEndTime;
 let startDateTime;
 let endDateTime;
 let timeZone = "America/New_York";
+let events = []
 
 export const Calendar = () => {
     const [currentView, setCurrentView] = useState('Select a View')
@@ -53,7 +54,6 @@ export const Calendar = () => {
 
     const { currentUser } = useAuth();
     let gapi = window.gapi
-    let events = []
     
     function authenticate() {
         return gapi.auth2.getAuthInstance()
@@ -102,7 +102,7 @@ export const Calendar = () => {
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
                     userEmail: currentUser.email,
-                    eventID: `${eventID}`,
+                    eventID: response.result.id,
                     eventTitle: `${eventTitle}`
                 })
             }).then(function (res) {
@@ -114,31 +114,45 @@ export const Calendar = () => {
     }
 
     function listEvents() {
-        // return gapi.client.calendar.events.list({
-        //     'calendarId': `${calendarID}`,
-        //     'timeMin': (new Date()).toISOString(),
-        //     'showDeleted': false,
-        //     'singleEvents': true,
-        //     'maxResults': 10,
-        //     'orderBy': 'startTime'
-        // }).then(function(response) {
-        //     // Handle the results here (response.result has the parsed body).
-        //     console.log("Response", response);
+        return gapi.client.calendar.events.list({
+            'calendarId': `${calendarID}`,
+            'timeMin': (new Date()).toISOString(),
+            'showDeleted': false,
+            'singleEvents': true,
+            'maxResults': 10,
+            'orderBy': 'startTime'
+        }).then(function(response) {
+            // Handle the results here (response.result has the parsed body).
+            console.log("Response", response);
 
-        //     var eventsArray = response.result.items;
-        //     if (eventsArray.length > 0) {
-        //         for (let i = 0; i < eventsArray.length; i++) {
-        //             var event = eventsArray[i];
-        //             var when = event.start.dateTime;
-        //             if (!when) {
-        //                 when = event.start.date;
-        //             }
-        //             events.push(event.summary + ' (' + when + ')')
-        //         }
-        //     }
-        //     console.log(events)
-        // },
-        // function(err) { console.error("Execute error", err); });
+            var eventsArray = response.result.items;
+            if (eventsArray.length > 0) {
+                events.push("Upcoming Events");
+                
+                for (let i = 0; i < eventsArray.length; i++) {
+                    var event = eventsArray[i];
+                    var when = event.start.dateTime;
+                    var date = when.split("T")[0];
+                    var time = when.split("-")[0];
+                    var hour = when.split("T")[1].split("-")[0].split(":")[0];
+                    var minute = when.split("T")[1].split("-")[0].split(":")[1];
+                    console.log(hour)
+                    if (hour > 12) {
+                        hour -= 12;
+                    }
+
+                    if (!when) {
+                        when = event.start.date;
+                    }
+                    events.push("Event: " + event.summary + " on " + date + " at " + hour + ":" + minute);
+                } // 15:30:00-04:00
+                //2022-03-16 T 15 : 30:00 - 04:00)
+            } else {
+                events.push("There are Currently No Upcoming Events");
+            }
+            console.log(events)
+        },
+        function(err) { console.error("Execute error", err); });
     }
 
     function deleteEvent() {        
@@ -441,8 +455,6 @@ const MonthStuff = () => {
             }
             tableRow.push(<tr>{final}</tr>);
         }
-        
-
     }
 
     function createWeek() {
@@ -458,7 +470,7 @@ const MonthStuff = () => {
         createWeeks();
         
         for (let i = (currentDay-1); i < ((currentDay-1)+7); i++) {
-            console.log(month[i]);
+            // console.log(month[i]);
             let header;
             let cellContent = month[i].getDate();
             let cell = (<td>{cellContent}</td>);
@@ -480,6 +492,17 @@ const MonthStuff = () => {
         tableRow.push(<tr>{final}</tr>);
     }
 
+    function createSchedule() {
+        let final = [];
+        tableRow = [];
+
+        for (let i = 0; i < events.length; i++) {
+            let cell = (<div>{events[i]}</div>);
+            final.push(cell);
+        }
+        tableRow.push(<tr>{final}</tr>);
+    }
+
     // const [showResults, setShowResults] = React.useState(false);
     // const onClick = () => setShowResults(true)
 
@@ -488,6 +511,8 @@ const MonthStuff = () => {
         createMonth();
     } else if (viewwww == "week") {
         createWeek();
+    } else if (viewwww == "schedule") {
+        createSchedule();
     }
 
     return(
