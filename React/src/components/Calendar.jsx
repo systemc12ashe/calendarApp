@@ -141,6 +141,16 @@ export const Calendar = () => {
             "sendUpdates" : "none"
         }).then(function(response) {
             // Handle the results here (response.result has the parsed body).
+            eventID = response.result.id;
+            fetch('http://localhost:8080/deleteEvent', {
+                method: 'Post',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({
+                 userEmail: currentUser.email,
+                })
+            }).then(function (res) {
+                console.log(res.status);
+            });
             console.log("Response", response);
         },
         function(err) { console.error("Execute error", err); });

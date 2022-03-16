@@ -33,6 +33,21 @@ app.post("/insertEvent", function (req, res) {
 
 })
 
+app.post("/deleteEvent", function (req, res) {
+  let userEmail = req.body.userEmail;
+  let buffer;
+  firestore.collection('users').doc(userEmail).get().then(function (response) {
+    buffer = response.data().calendarEvents;
+    delete buffer['test'];
+    console.log(buffer);
+  }).then( function () {
+    firestore.collection('users').doc(userEmail).set({
+      calendarEvents: buffer
+    })
+  })
+  res.status(200).send();
+})
+
 app.use(express.static("public_html"));
 
 app.listen(port, hostname, () => {
