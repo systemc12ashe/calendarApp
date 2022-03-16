@@ -42,6 +42,9 @@ export const Calendar = () => {
     const [showResults, setShowResults] = React.useState(false)
     const onClick = () => setShowResults(true);
 
+    const [showCreate, setShowCreate] = React.useState(false)
+    const create = () => setShowCreate(true);
+
     // Google Calendar API
     let gapi = window.gapi
     let events = []
@@ -223,8 +226,10 @@ export const Calendar = () => {
                 <div>
                     <input type="submit" value="Search" onClick={onClick} />
                     { showResults ? <MonthStuff /> : null }
+                    <input type="submit" value="Create" onClick={create} />
+                    { showCreate ? <CreateView /> : null }
                 </div>
-                <div>
+                <div id="buttons">
                     <button className='apiButtons' id='authorize' onClick={authenticate}>Authorize</button>
                     <button className='apiButtons' id='listEvents' onClick={listEvents}>List Events</button>
                     <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
@@ -233,6 +238,32 @@ export const Calendar = () => {
                 </div>
             </div>
         </div>
+    )
+}
+
+const CreateView = () => {
+    return (
+        <form action="">
+            <h1>Create Event</h1>
+            <ul>
+                <li>
+                    <label for="name">Title</label>
+                    <input type="text" id="name" name="event_name"/>
+                </li>
+                <li>
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="event_date"/>
+                </li>
+                <li>
+                    <label for="start_time">Start Time</label>
+                    <input type="time" id="start_time" name="start_time"/>
+                </li>
+                <li>
+                    <label for="end_time">End Time</label>
+                    <input type="time" id="end_time" name="end_time"/>
+                </li>
+            </ul>
+        </form>
     )
 }
 
