@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
+import {Nav} from "react-bootstrap"
 import {Link, useNavigate} from "react-router-dom";
 import { API_KEY, CLIENT_ID, SCOPES } from "../config.js";
 import { useAuth } from "../contexts/AuthContext"
 import './Style.css';
+
 
 // let currentView;
 let viewwww;
@@ -195,9 +197,25 @@ export const Calendar = () => {
     });
 
     return (
+        
         <div>
-            <div>
-                <form>
+            <div className="sidebar">
+                <div>
+                    
+                    <input type="submit" class="fontAwesome fa-4x navButton" name="create" value="&#xf271;" onClick={create} />
+                    { showCreate ? <CreateView /> : null }
+                    <br />
+                    <input type="submit" class="fontAwesome fa-4x navButton" name="delete" value="&#xf272;" onClick={remove} />
+                    { showDelete ? <DeleteView /> : null }
+                </div>
+                
+                <div>
+                    <button onClick={handleLogout} class="fontAwesome fa-4x navButton">&#xf2f5;</button>
+                </div>
+
+            </div>
+            <div class="content">
+                <form class="form-inline">
                   <select 
                     onChange={(event) => changeView(event.target.value)}
                     value={currentView}
@@ -242,24 +260,18 @@ export const Calendar = () => {
                             <option value="2030">2030</option>
                         </select>
                   }
-              </form>
-                <div>
-                    <input type="submit" value="Search" onClick={onClick} />
-                    { showResults ? <MonthStuff /> : null }
-                    <input type="submit" value="Create" onClick={create} />
-                    { showCreate ? <CreateView /> : null }
-                    <input type="submit" value="Delete" onClick={remove} />
-                    { showDelete ? <DeleteView /> : null }
-                </div>
+                </form>
+                <input type="submit" value="Search" onClick={onClick} />
+                { showResults ? <MonthStuff /> : null }
+
                 <div id="buttons">
                     <button className='apiButtons' id='authorize' onClick={authenticate}>Authorize</button>
                     <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
                     <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
                 </div>
-                <div>
-                    <button onClick={handleLogout}>Sign Out</button>
-                </div>
             </div>
+
+            
         </div>
     )
 }
@@ -295,19 +307,19 @@ const CreateView = () => {
             <ul>
                 <li>
                     <label htmlFor="name">Title </label>
-                    <input type="text" id="name" name="event_name" onChange={(event) => changeTitle(event.target.value)} value={title} />
+                    <input type="text" id="name" name="event_name" class="white" onChange={(event) => changeTitle(event.target.value)} value={title} />
                 </li>
                 <li>
                     <label htmlFor="date">Date </label>
-                    <input type="date" id="date" name="event_date" onChange={(event) => changeDate(event.target.value)} value={date} />
+                    <input type="date" id="date" name="event_date" class="white" onChange={(event) => changeDate(event.target.value)} value={date} />
                 </li>
                 <li>
                     <label htmlFor="start_time">Start Time </label>
-                    <input type="time" id="start_time" name="start_time" onChange={(event) => changeStartTime(event.target.valueAsDate)} value={startTime} />
+                    <input type="time" id="start_time" name="start_time" class="white" onChange={(event) => changeStartTime(event.target.valueAsDate)} value={startTime} />
                 </li>
                 <li>
                     <label htmlFor="end_time">End Time </label>
-                    <input type="time" id="end_time" name="end_time" onChange={(event) => changeEndTime(event.target.valueAsDate)} value={endTime} />
+                    <input type="time" id="end_time" name="end_time" class="white" onChange={(event) => changeEndTime(event.target.valueAsDate)} value={endTime} />
                 </li>
             </ul>
         </form>
@@ -327,7 +339,7 @@ const DeleteView = () => {
             <ul>
                 <li>
                     <label htmlFor="name">Title </label>
-                    <input type="text" id="name" name="event_name" onChange={(event) => changeTitle(event.target.value)} value={title} />
+                    <input type="text" id="name" name="event_name" class="white" onChange={(event) => changeTitle(event.target.value)} value={title} />
                 </li>
             </ul>
         </form>
