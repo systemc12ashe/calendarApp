@@ -15,6 +15,7 @@ let currentMonth;
 let tableRow = [];
 
 // Calendar and event variables
+let gapi = window.gapi
 let calendarID = "primary";
 let eventID = "";
 let eventTitle;
@@ -66,8 +67,8 @@ export const Calendar = () => {
         }
     }
 
-    let gapi = window.gapi
-    
+    const [disable, setDisable] = useState(false);
+
     function authenticate() {
         return gapi.auth2.getAuthInstance()
             .signIn({scope: SCOPES})
@@ -83,84 +84,9 @@ export const Calendar = () => {
         return gapi.client.load('calendar', 'v3')
             .then(function() {
                 console.log("GAPI client loaded for API");
+                setDisable(true)
             },
             function(err) { console.error("Error loading GAPI client for API", err); });
-    }
-
-    function insertEvent() {
-        var startTimeSplit = eventStartTime.toTimeString().split(" ")
-        var endTimeSplit = eventEndTime.toTimeString().split(" ")
-        var start = eventDate + "T" + startTimeSplit[0] + "-07:00"
-        var end = eventDate + "T" + endTimeSplit[0] + "-07:00"
-
-        return gapi.client.calendar.events.insert({
-            "calendarId": `${calendarID}`,
-            "sendNotifications": false,
-            "resource": {
-                "summary": `${eventTitle}`,
-                "description": `${eventDescription}`,
-                "start": {
-                    "dateTime": `${start}`,
-                    "timeZone": `${timeZone}`
-                },
-                "end": {
-                    "dateTime": `${end}`,
-                    "timeZone": `${timeZone}`
-                }
-            }
-        }).then(function(response) {
-            // Handle the results here (response.result has the parsed body).
-            fetch('http://localhost:8080/insertEvent', {
-                method: 'Post',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({
-                    userEmail: currentUser.email,
-                    eventID: response.result.id,
-                    eventTitle: `${eventTitle}`
-                })
-            }).then(function (res) {
-                console.log(res.status);
-            });
-            console.log("Response", response);
-        },
-        function(err) { console.error("Execute error", err); });
-    }
-
-    function deleteEvent() {        
-        fetch('http://localhost:8080/getEeventID', {
-            method: 'Post',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({
-                userEmail: currentUser.email,
-                eventTitle: `${eventTitle}`
-            })
-        }).then(function (res) {
-            return res.json();
-        }).then(function (res) {
-            eventID = res.eventID;
-        }).then(function () {
-            return gapi.client.calendar.events.delete({
-                "calendarId": `${calendarID}`,
-                "eventId": `${eventID}`,
-                "sendNotifications": false,
-                "sendUpdates" : "none"
-            }).then(function(response) {
-                // Handle the results here (response.result has the parsed body).
-                eventID = response.result.id;
-                fetch('http://localhost:8080/deleteEvent', {
-                    method: 'Post',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({
-                        userEmail: currentUser.email,
-                        eventTitle: `${eventTitle}`
-                    })
-                }).then(function (res) {
-                    console.log(res.status);
-                });
-                console.log("Response", response);
-            },
-            function(err) { console.error("Execute error", err); });
-        })
     }
 
     // function updateEvent() {
@@ -265,9 +191,7 @@ export const Calendar = () => {
                 { showResults ? <MonthStuff /> : null }
 
                 <div id="buttons">
-                    <button className='apiButtons' id='authorize' onClick={authenticate}>Authorize</button>
-                    <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
-                    <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
+                    <button className={disable ? 'apiButtons2' : 'apiButtons'} id='authorize' onClick={authenticate}>Authorize</button>
                 </div>
             </div>
 
@@ -301,6 +225,47 @@ const CreateView = () => {
         eventEndTime = newEndTime;
     }
 
+    const { currentUser, logout } = useAuth();
+
+    function insertEvent() {
+        var startTimeSplit = eventStartTime.toTimeString().split(" ")
+        var endTimeSplit = eventEndTime.toTimeString().split(" ")
+        var start = eventDate + "T" + startTimeSplit[0] + "-07:00"
+        var end = eventDate + "T" + endTimeSplit[0] + "-07:00"
+
+        return gapi.client.calendar.events.insert({
+            "calendarId": `${calendarID}`,
+            "sendNotifications": false,
+            "resource": {
+                "summary": `${eventTitle}`,
+                "description": `${eventDescription}`,
+                "start": {
+                    "dateTime": `${start}`,
+                    "timeZone": `${timeZone}`
+                },
+                "end": {
+                    "dateTime": `${end}`,
+                    "timeZone": `${timeZone}`
+                }
+            }
+        }).then(function(response) {
+            // Handle the results here (response.result has the parsed body).
+            fetch('http://localhost:8080/insertEvent', {
+                method: 'Post',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    userEmail: currentUser.email,
+                    eventID: response.result.id,
+                    eventTitle: `${eventTitle}`
+                })
+            }).then(function (res) {
+                console.log(res.status);
+            });
+            console.log("Response", response);
+        },
+        function(err) { console.error("Execute error", err); });
+    }
+
     return (
         <form action="">
             <h1>Create Event</h1>
@@ -322,6 +287,7 @@ const CreateView = () => {
                     <input type="time" id="end_time" name="end_time" class="white" onChange={(event) => changeEndTime(event.target.valueAsDate)} value={endTime} />
                 </li>
             </ul>
+            <button className='apiButtons' id='insertEvent' onClick={insertEvent}>Insert Event</button>
         </form>
     )
 }
@@ -333,6 +299,45 @@ const DeleteView = () => {
         eventTitle = newTitle;        
     }
 
+    const { currentUser, logout } = useAuth();
+
+    function deleteEvent() {        
+        fetch('http://localhost:8080/getEeventID', {
+            method: 'Post',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                userEmail: currentUser.email,
+                eventTitle: `${eventTitle}`
+            })
+        }).then(function (res) {
+            return res.json();
+        }).then(function (res) {
+            eventID = res.eventID;
+        }).then(function () {
+            return gapi.client.calendar.events.delete({
+                "calendarId": `${calendarID}`,
+                "eventId": `${eventID}`,
+                "sendNotifications": false,
+                "sendUpdates" : "none"
+            }).then(function(response) {
+                // Handle the results here (response.result has the parsed body).
+                eventID = response.result.id;
+                fetch('http://localhost:8080/deleteEvent', {
+                    method: 'Post',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({
+                        userEmail: currentUser.email,
+                        eventTitle: `${eventTitle}`
+                    })
+                }).then(function (res) {
+                    console.log(res.status);
+                });
+                console.log("Response", response);
+            },
+            function(err) { console.error("Execute error", err); });
+        })
+    }
+
     return (
         <form action="">
             <h1>Delete Event</h1>
@@ -342,6 +347,7 @@ const DeleteView = () => {
                     <input type="text" id="name" name="event_name" class="white" onChange={(event) => changeTitle(event.target.value)} value={title} />
                 </li>
             </ul>
+            <button className='apiButtons' id='deleteEvent' onClick={deleteEvent}>Delete Event</button>
         </form>
     )
 }
@@ -359,19 +365,15 @@ const MonthStuff = () => {
     let week6 = [];
     let monthHasFiveWeeks = false;
     let monthHasSixWeeks = false;
-
-// 
-    const { currentUser } = useAuth();
-    let gapi = window.gapi
     
     function authenticate() {
         return gapi.auth2.getAuthInstance()
-            .signIn({scope: SCOPES})
-            .then(function() {
-                console.log("Sign-in successful");
-                loadClient();
-            },
-            function(err) { console.error("Error signing in", err); });
+        .signIn({scope: SCOPES})
+        .then(function() {
+            console.log("Sign-in successful");
+            loadClient();
+        },
+        function(err) { console.error("Error signing in", err); });
     }
 
     function loadClient() {
@@ -416,12 +418,9 @@ const MonthStuff = () => {
             }
             // console.log(JSON.stringify(events[0]))
             createSchedule();
-            },
-            function(err) { console.error("Execute error", err); });
-            
+        },
+        function(err) { console.error("Execute error", err); });
     }
-// 
-
     // From https://stackoverflow.com/questions/13146418/find-all-the-days-in-a-month-with-date-object
 
     function getDaysInMonth(month, year) {
@@ -578,7 +577,6 @@ const MonthStuff = () => {
         createWeek();
     } else if (viewwww == "schedule") {
         listEvents();
-        console.log(head);
     }
 
     return(

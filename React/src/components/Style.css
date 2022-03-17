@@ -127,7 +127,9 @@ div.content {
   margin-top: 3%;
 } */
 
-.apiContainer {
-  white-space: pre-wrap;
+.apiButtons2 {
   position: relative;
+  text-align: center;
+  display: none;
+  margin-top: 3%;
 }
