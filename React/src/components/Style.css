@@ -47,7 +47,7 @@ ul {
 
 table {
     margin-top: 2rem;
-	border-collapse: collapse;
+	  border-collapse: collapse;
 }
 
 th, td {
@@ -56,11 +56,12 @@ th, td {
 
 th {
     padding: 50px;
+    text-align: center;
 }
 
 td {
-    padding-right: 50px;
-    padding-bottom: 70px;
+    padding: 50px;
+    text-align: center;
 }
 
  /* The side navigation menu */
@@ -120,16 +121,6 @@ div.content {
   }
 }
 
-/* .apiButtons {
-  position: relative;
-  text-align: center;
-  display: inline-block;
-  margin-top: 3%;
-} */
-
-.apiButtons2 {
-  position: relative;
-  text-align: center;
+.authButton {
   display: none;
-  margin-top: 3%;
 }

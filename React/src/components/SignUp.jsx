@@ -51,6 +51,7 @@ function SignUp() {
         <input type="submit" value="Sign Up" onClick={handleSubmit} disabled={loading}></input>
         <br></br>
         <p>
+            <br></br>
             Already have an account?
             <br></br>
             <Link to="/Login">Log In</Link>

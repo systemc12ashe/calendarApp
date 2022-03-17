@@ -38,10 +38,11 @@ function Login() {
     <div>
       <input type="password" ref={passwordRef} required></input>
     </div>
-  
+    <br></br>
     <input type="submit" value="Log In" onClick={handleSubmit} disabled={loading}></input>
     <br></br>
     <p>
+      <br></br>
       Need an account?
       <br></br>
       <Link to="/SignUp">Sign Up</Link>
