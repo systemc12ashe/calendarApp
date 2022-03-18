@@ -22,7 +22,7 @@ This course project is for 375: Web Development
 ## Installation
 ### How to Run
 - Install [Git](https://git-scm.com).
-- Download the repository.
+- Download the repository and checkout to the react-backend branch.
 - Run ```npm install``` to install the dependencies for the NodeJS back-end server.
 - Navigate to the "React" directory by typing ```cd React```
 - Run ```npm install``` to install the dependencies for the React front-end.
