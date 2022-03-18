@@ -1,6 +1,53 @@
+.fontAwesome {
+  font-family: 'Helvetica', FontAwesome, sans-serif;
+  font-size: 60px;
+}
+
+.white {
+  background-color: white;
+  padding: 0;
+  margin-left: 10px;
+}
+
+button, input, select {
+  background-color: #f1f1f1;
+  border: none;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+input.navButton{
+  background-color: #f1f1f1;
+  color: black;
+  border: none;
+  padding: 15px 35.75px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+button.navButton{
+  background-color: #f1f1f1;
+  color: black;
+  border: none;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+ul {
+  list-style-type: none;
+  padding-left: 2%;
+}
+
+
 table {
     margin-top: 2rem;
-	border-collapse: collapse;
+	  border-collapse: collapse;
 }
 
 th, td {
@@ -9,18 +56,19 @@ th, td {
 
 th {
     padding: 50px;
+    text-align: center;
 }
 
 td {
-    padding-right: 50px;
-    padding-bottom: 70px;
+    padding: 50px;
+    text-align: center;
 }
 
  /* The side navigation menu */
 .sidebar {
   margin: 0;
   padding: 0;
-  width: 100px;
+  width: 300px;
   background-color: #f1f1f1;
   position: fixed;
   height: 100%;
@@ -31,7 +79,6 @@ td {
 .sidebar i {
   display: block;
   color: black;
-  padding: 16px;
   text-decoration: none;
   font-size:60px;
 }
@@ -50,9 +97,9 @@ td {
 
 /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
 div.content {
-  margin-left: 200px;
+  margin-left: 300px;
   padding: 1px 16px;
-  height: 1000px;
+  /* height: 1000px; */
 }
 
 /* On screens that are less than 700px wide, make the sidebar into a topbar */
@@ -72,4 +119,8 @@ div.content {
     text-align: center;
     float: none;
   }
-} 
+}
+
+.authButton {
+  display: none;
+}
