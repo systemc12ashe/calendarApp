@@ -7,7 +7,7 @@ The Palendar, is an online web application that automatically generates a calend
 - [Technologies](#technologies)
 - [Installation](#installation)
 - [Team](#team)
-- [Troubleshoot] (#troubleshoot)
+- [Troubleshoot](#troubleshoot)
 - [Supported-Browsers](#supported-browsers)
 
 ## About
@@ -36,8 +36,8 @@ This course project is for 375: Web Development
 - Cassidy Ashe
 
 ## Troubleshoot
-- This project uses and requires additional files containing private credentials.
-- To access the API, you need to be added as one of the Test Users.
+- This project uses and requires additional files containing private credentials (Contact the Team for the files).
+- To access the API, you need to be added as one of the Test Users (Contact Brandon for authorization)
 
 ## Supported Browsers
 The platform is only tested in Mozilla Firefox and Google Chrome. Other browsers might not render all pages correctly.
