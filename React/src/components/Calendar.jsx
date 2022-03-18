@@ -377,7 +377,7 @@ const MonthStuff = () => {
     let monthHasFiveWeeks = false;
     let monthHasSixWeeks = false;
 
-    function listEvents() { //
+    function listEvents() {
         var event;
         var eventsArray;
 
@@ -403,9 +403,10 @@ const MonthStuff = () => {
                     events.push(event.summary + ' (' + when + ')')
                 }
             }
+            // console.log(JSON.stringify(events[0]))
+            createSchedule();
         },
         function(err) { console.error("Execute error", err); });
-        
     }
     // From https://stackoverflow.com/questions/13146418/find-all-the-days-in-a-month-with-date-object
 
@@ -537,33 +538,17 @@ const MonthStuff = () => {
     function createSchedule() {
         let final = [];
         tableRow = [];
-        head = [];
 
-        if (events.length == 0 || events == undefined) {
-            tableRow = [];
-            head = [];
-            tableRow.push(<tr></tr>);
-            head.push(<th>Date</th>);
-            head.push(<th>Event Name</th>);
-            head.push(<th>Time</th>);
-            tableRow.push(<tr>{final}</tr>);
-        } else {
-            for (let i = 0; i < (events.length/2); i++) {
-                let eventName = events[i].substring(0, events[i].indexOf('('));;
-                let time = events[i].substring(events[i].indexOf('(') + 12);
-                time = time.slice(0, -1);
-                let date = events[i].substring(events[i].indexOf('(') + 1);
-                date = date.slice(0, 10);
-                final.push(<td>{date}</td>);
-                final.push(<td>{eventName}</td>);
-                final.push(<td>{time}</td>);
-            }
-
-            head.push(<th>Date</th>);
-            head.push(<th>Event Name</th>);
-            head.push(<th>Time</th>);
-            tableRow.push(<tr>{final}</tr>);
+        for (let i = 0; i < (events.length/3); i++) {
+            let eventName = events[i].substring(0, events[i].indexOf('('));;
+            let time = events[i].substring(events[i].indexOf('(') + 12);
+            time = time.slice(0, -1);
+            let date = events[i].substring(events[i].indexOf('(') + 1);
+            date = date.slice(0, 10);
+            let cell = (<tr><td>{date}</td><td>{eventName}</td><td>{time}</td></tr>);
+            final.push(cell);
         }
+        tableRow.push(<tr>{final}</tr>);
     }
 
     // const [showResults, setShowResults] = React.useState(false);
@@ -576,7 +561,6 @@ const MonthStuff = () => {
         createWeek();
     } else if (viewwww == "schedule") {
         listEvents();
-        createSchedule();
     }
 
     return(

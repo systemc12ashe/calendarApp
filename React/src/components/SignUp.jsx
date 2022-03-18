@@ -24,7 +24,7 @@ function SignUp() {
             await signup(emailRef.current.value, passwordRef.current.value);
             navigate("/Calendar")
         } catch (error) {
-            console.log(error)
+            return setError(error.message)
         }
         setLoading(false)
     }
